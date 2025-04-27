@@ -1,0 +1,158 @@
+esphome:
+  name: egony-gateway
+  project:
+    name: egony.gateway
+    version: "2025.04.26"
+  on_boot:
+    priority: 600
+    then:
+      - switch.turn_on: RST_Z
+      - delay: 1000ms
+      - switch.turn_off: RST_Z
+      - lambda: |-
+          id(mdns0).add_extra_service({ "_zigbee-coordinator", "_tcp", 6638, {{"radio_type", "ezsp"}, {"name", "Egony_Gateway"},{"serial_number", get_mac_address()}} });
+
+esp32:
+  board: wt32-eth01
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_LWIP_MAX_SOCKETS: "16" 
+
+external_components:
+  - source: github://egony/esphome-stream-server-v2
+  - source: github://egony/esphome-components
+    components: [uart]
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO0_IN
+  phy_addr: 1
+  power_pin: GPIO16
+
+  # Optional manual IP
+  #manual_ip:
+    #static_ip: 
+    #gateway: 
+    #subnet: 255.255.255.0  
+
+# Enable logging
+logger:
+  level: DEBUG
+  #level: INFO
+  
+# Enable Home Assistant API
+api:
+  reboot_timeout: 0s
+
+ota:
+  platform: esphome
+
+web_server:
+  port: 80
+  local: true
+  version: 2
+
+text_sensor:
+  - platform: template
+    name: Uptime
+    id: uptime_human
+    icon: mdi:clock-start
+           
+switch:
+  - platform: gpio
+    pin: 33
+    id: RST_Z
+    inverted: yes
+    restore_mode: ALWAYS_OFF
+       
+  - platform: gpio
+    pin: 32
+    id: FLASH_Z
+    inverted: yes
+    restore_mode: ALWAYS_OFF
+
+  - platform: template
+    id: FLASH_Zigbee1 # !!!------------- dummy switch --------------------!!!
+    disabled_by_default: true  
+    turn_off_action:
+      - switch.turn_off: FLASH_Z
+      - delay: 900ms
+      - logger.log: "Zigbee bootloader deactivated"
+
+button:    
+  - platform: restart
+    name: "Gateway Reset"
+    disabled_by_default: true
+
+  - platform: template
+    name: "Zigbee bootloader mode"
+    id: FLASH_Zigbee
+    disabled_by_default: true  
+    on_press:
+      - switch.turn_on: FLASH_Z
+      - delay: 1000ms
+      - switch.turn_on: RST_Z
+      - delay: 1000ms
+      - switch.turn_off: RST_Z
+      - delay: 1000ms
+      - switch.turn_off: FLASH_Z
+      - delay: 1000ms
+      - logger.log: "Zigbee bootloader activated"
+
+uart:
+  id: uart_bus
+  rx_pin: GPIO5
+  tx_pin: GPIO17
+  cts_pin: GPIO2
+  rts_pin: GPIO12
+  # possible values are
+  # - DISABLE = disable hardware flow control
+  # - RTS = enable RX hardware flow control (rts)
+  # - CTS = enable TX hardware flow control (cts)
+  # - CTS_RTS = enable hardware flow control
+  # - MAX = ?
+  hw_flow_control: CTS_RTS  
+  baud_rate: 115200
+  rx_buffer_size: 1024
+
+stream_server:
+  uart_id: uart_bus
+  id: ss
+  port: 6638
+
+binary_sensor:
+  - platform: stream_server
+    stream_server: ss
+    name: "Serial Connected"
+
+#converts uptime in seconds to a more human friendly format
+sensor:
+  - platform: "uptime"
+    name: "Uptime Sensor"
+    id: "uptime_sensor"
+    internal: true
+    update_interval: "60s"
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: "uptime_human"
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+              
+mdns:
+  id: mdns0
