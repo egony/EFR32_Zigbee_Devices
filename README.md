@@ -8,4 +8,4 @@
 # Zigbee LAN coordinators V5 and V6
 
 ### Zigbee ethernet coordinators V5 and V6 based on EFR32MG21/MG24 chips
-### Please, see [Wiki page](https://github.com/egony/EFR32_Zigbee_LAN/wiki/Home-EN) for details.
+### Please, see [Wiki page](https://github.com/egony/EFR32_Zigbee_LAN/wiki/%E2%80%90-EN-Home) for details.
