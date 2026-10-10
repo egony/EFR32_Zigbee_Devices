@@ -4,6 +4,10 @@ bootloader - прошивка загрузчика
 
 zigbee_ncp - прошивка Zigbee координатора 
 
+zigbee_router - прошивка Zigbee роутера (не проверял) 
+
+openthread_rcp - прошивка OpenThread RCP (не проверял)
+
 115200 и 230400 - скорости обмена чипа Zigbee с UART
 
 В прошивках используется аппаратное управление потоком CTS/RTS.
