@@ -6,9 +6,9 @@
 
 **zigbee_ncp** - прошивки Zigbee координатора 
 
-**zigbee_router** - прошивки Zigbee роутера (не проверял) 
+**zigbee_router** - прошивки Zigbee роутера
 
-**openthread_rcp** - прошивки OpenThread RCP (не проверял)
+**openthread_rcp** - прошивки OpenThread RCP
 
 115200 и 230400 - скорости обмена чипа EFR32 с UART
 
