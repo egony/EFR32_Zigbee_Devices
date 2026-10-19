@@ -1,4 +1,4 @@
-⚠️ Теперь новые прошивки собираются у [Nerivec](https://github.com/Nerivec/silabs-firmware-builder). То, что выложено тут, возможно, устарело.
+⚠️ Теперь новые прошивки собираются у [Nerivec](https://github.com/Nerivec/silabs-firmware-builder), берите оттуда. 
 
 ### Прошивки для V6 на базе модулей RF-BM-MG24B2i
 
